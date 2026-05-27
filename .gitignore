@@ -1,0 +1,18 @@
+# Gradle files
+.gradle/
+build/
+app/build/
+
+# Local tools & SDKs (Crucial to prevent gigabytes of binaries from uploading!)
+.tools/
+
+# Local configurations
+local.properties
+.idea/
+*.iml
+.DS_Store
+
+# Output binaries
+*.apk
+*.aar
+*.jar

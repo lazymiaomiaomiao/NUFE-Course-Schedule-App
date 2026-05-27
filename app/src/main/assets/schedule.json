@@ -1,0 +1,44 @@
+{
+  "student": "张三",
+  "studentId": "2023010101",
+  "term": "2025-2026-2",
+  "semesterStart": "2026-03-02",
+  "source": "本科教务管理系统",
+  "sessions": [
+    {
+      "courseName": "高等数学",
+      "courseCode": "MATH1001",
+      "weekday": 1,
+      "dayName": "星期一",
+      "periodStart": 1,
+      "periodEnd": 2,
+      "timeStart": "08:20",
+      "timeEnd": "09:45",
+      "weekText": "1~16周",
+      "weeks": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+      "location": "教学楼A101",
+      "teacher": "李老师",
+      "className": "计算机2301",
+      "capacity": "60/60",
+      "courseType": "公共基础课 必修"
+    },
+    {
+      "courseName": "大学英语",
+      "courseCode": "ENGL1002",
+      "weekday": 2,
+      "dayName": "星期二",
+      "periodStart": 3,
+      "periodEnd": 4,
+      "timeStart": "10:00",
+      "timeEnd": "11:25",
+      "weekText": "1~16周",
+      "weeks": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+      "location": "外国语大楼302",
+      "teacher": "王老师",
+      "className": "计算机2301",
+      "capacity": "60/60",
+      "courseType": "公共基础课 必修"
+    }
+  ],
+  "unscheduledCourses": []
+}
