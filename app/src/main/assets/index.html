@@ -855,6 +855,30 @@
     </div>
   </div>
 
+  <!-- M3 居中数据清除确认弹窗 -->
+  <div id="clearConfirmModal" class="m3-modal">
+    <div class="m3-modal-scrim" id="clearModalScrim"></div>
+    <div class="m3-modal-content" style="width: 85%; max-width: 320px; padding: 24px; display: flex; flex-direction: column; gap: 16px; box-sizing: border-box;">
+      <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: var(--md-sys-color-on-background); display: flex; align-items: center; gap: 8px;">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="var(--course-txt-c0)" style="flex-shrink: 0;"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+        清除本地数据？
+      </h3>
+      <p style="margin: 0; font-size: 13px; line-height: 1.5; color: var(--md-sys-color-secondary);">
+        清除数据将执行以下操作：<br>
+        1. <strong>清空本地课表</strong>：彻底删除您已导入的所有课程缓存。<br>
+        2. <strong>注销教务登录</strong>：清空所有教务系统的 Cookie 缓存，以便您随时自由切换其他账号重新导入。
+      </p>
+      <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px;">
+        <button id="cancelClearBtn" type="button" style="height: 36px; padding: 0 16px; border-radius: 18px; font-size: 13px; font-weight: 700; background-color: var(--md-sys-color-surface-variant); color: var(--md-sys-color-secondary); border: none; cursor: pointer; -webkit-tap-highlight-color: transparent;">
+          取消
+        </button>
+        <button id="confirmClearBtn" type="button" style="height: 36px; padding: 0 16px; border-radius: 18px; font-size: 13px; font-weight: 700; background-color: var(--course-bg-c0); color: var(--course-txt-c0); border: none; cursor: pointer; -webkit-tap-highlight-color: transparent;">
+          确认清除
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script>
     // 注入教务课表数据
     const schedule = __SCHEDULE_JSON__;
@@ -1424,29 +1448,24 @@
         window.location.href = "https://jwxt.nufe.edu.cn/student/for-std/course-table";
       });
 
-      // 清除按钮点击：清空本地数据与教务登录状态 (双击确认模式，规避 WebView 阻断 confirm 弹窗)
-      let clearConfirmTimeout = null;
+      // 清除按钮点击：弹出居中数据清除确认对话框
       document.getElementById("clearBtn").addEventListener("click", () => {
-        const btn = document.getElementById("clearBtn");
-        if (btn.textContent === "确认清除？") {
-          clearTimeout(clearConfirmTimeout);
-          btn.textContent = "清除数据";
-          btn.style.backgroundColor = "var(--course-bg-c0)";
-          btn.style.color = "var(--course-txt-c0)";
-          if (window.AndroidBridge && window.AndroidBridge.clearScheduleData) {
-            window.AndroidBridge.clearScheduleData();
-          } else {
-            alert("该功能需要在手机 App 客户端内运行");
-          }
+        document.getElementById("clearConfirmModal").classList.add("show");
+      });
+
+      const closeClearModal = () => {
+        document.getElementById("clearConfirmModal").classList.remove("show");
+      };
+
+      document.getElementById("cancelClearBtn").addEventListener("click", closeClearModal);
+      document.getElementById("clearModalScrim").addEventListener("click", closeClearModal);
+
+      document.getElementById("confirmClearBtn").addEventListener("click", () => {
+        closeClearModal();
+        if (window.AndroidBridge && window.AndroidBridge.clearScheduleData) {
+          window.AndroidBridge.clearScheduleData();
         } else {
-          btn.textContent = "确认清除？";
-          btn.style.backgroundColor = "var(--course-txt-c0)";
-          btn.style.color = "#ffffff";
-          clearConfirmTimeout = setTimeout(() => {
-            btn.textContent = "清除数据";
-            btn.style.backgroundColor = "var(--course-bg-c0)";
-            btn.style.color = "var(--course-txt-c0)";
-          }, 3000);
+          alert("该功能需要在手机 App 客户端内运行");
         }
       });
 
