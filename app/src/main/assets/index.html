@@ -465,14 +465,14 @@
       opacity: 0.85;
     }
 
-    /* 精准 7 课时周课表网格 */
+    /* 精准 7 课时周课表网格 (每时间段拆分为 2 子行，支持半格占位) */
     .week-board {
       flex: 1;
       min-height: 0;
       display: grid;
       grid-template-columns: 42px repeat(5, minmax(0, 1fr));
-      grid-template-rows: 26px repeat(7, minmax(0, 1fr));
-      gap: 3px;
+      grid-template-rows: 26px repeat(14, minmax(0, 1fr));
+      gap: 3px 3px;
       background-color: var(--md-sys-color-background);
     }
 
@@ -961,30 +961,44 @@
       return `c${sum % 7}`;
     }
 
-    // 网格位置映射
+    // 网格位置映射 (14 子行模式：每时间段占 2 子行，支持半格)
+    // 时间段布局：
+    //   时间段0 (1-2节)   → 子行 2,3
+    //   时间段1 (3-4节)   → 子行 4,5
+    //   时间段2 (5节)     → 子行 6,7
+    //   时间段3 (6-7节)   → 子行 8,9
+    //   时间段4 (8-9节)   → 子行 10,11
+    //   时间段5 (10节)    → 子行 12,13
+    //   时间段6 (11-13节) → 子行 14,15
+    function periodToBlockInfo(period) {
+      // 返回 { blockIdx, isFirstInBlock }
+      // blockIdx: 0~6 对应 7 个时间段
+      // isFirstInBlock: 该节次是否为该时间段的前半部分
+      if (period <= 2) return { blockIdx: 0, isFirstInBlock: period === 1 };
+      if (period <= 4) return { blockIdx: 1, isFirstInBlock: period === 3 };
+      if (period === 5) return { blockIdx: 2, isFirstInBlock: true };
+      if (period <= 7) return { blockIdx: 3, isFirstInBlock: period === 6 };
+      if (period <= 9) return { blockIdx: 4, isFirstInBlock: period === 8 };
+      if (period === 10) return { blockIdx: 5, isFirstInBlock: true };
+      return { blockIdx: 6, isFirstInBlock: period === 11 };
+    }
+
     function getGridRows(session) {
-      let startRow = 2;
-      let endRow = 3;
       const start = session.periodStart;
       const end = session.periodEnd;
+      const startInfo = periodToBlockInfo(start);
+      const endInfo = periodToBlockInfo(end);
 
-      if (start <= 2) startRow = 2;
-      else if (start <= 4) startRow = 3;
-      else if (start === 5) startRow = 4;
-      else if (start <= 7) startRow = 5;
-      else if (start <= 9) startRow = 6;
-      else if (start === 10) startRow = 7;
-      else startRow = 8;
+      // 起始子行：如果课程从该时间段的第一节开始，占满整行(子行顶部)；否则从下半开始
+      const startSubRow = 2 + startInfo.blockIdx * 2 + (startInfo.isFirstInBlock ? 0 : 1);
+      
+      // 结束子行：如果课程在该时间段的最后一节结束，占满整行(子行底部+1)；否则只占上半
+      // 判断是否为该时间段的最后一节
+      const blockEnds = [2, 4, 5, 7, 9, 10, 13]; // 每个时间段的最后一个节次
+      const isLastInBlock = (end >= blockEnds[endInfo.blockIdx]);
+      const endSubRow = 2 + endInfo.blockIdx * 2 + (isLastInBlock ? 2 : 1);
 
-      if (end <= 2) endRow = 3;
-      else if (end <= 4) endRow = 4;
-      else if (end === 5) endRow = 5;
-      else if (end <= 7) endRow = 6;
-      else if (end <= 9) endRow = 7;
-      else if (end === 10) endRow = 8;
-      else endRow = 9;
-
-      return { startRow, endRow };
+      return { startRow: startSubRow, endRow: endSubRow };
     }
 
     function periodText(session) {
@@ -1110,7 +1124,7 @@
 
       if (isNotImported()) {
         board.innerHTML = `
-          <div style="grid-column: span 6; grid-row: span 8; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: var(--md-sys-color-surface); border-radius: 16px; padding: 24px; text-align: center; box-shadow: var(--md-elevation-1); border: 2.5px dashed var(--md-sys-color-outline); margin: 4px 0; gap: 8px;">
+          <div style="grid-column: span 6; grid-row: span 15; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: var(--md-sys-color-surface); border-radius: 16px; padding: 24px; text-align: center; box-shadow: var(--md-elevation-1); border: 2.5px dashed var(--md-sys-color-outline); margin: 4px 0; gap: 8px;">
             <svg viewBox="0 0 24 24" width="44" height="44" style="color: var(--md-sys-color-secondary);"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
             <div style="font-size: 15px; font-weight: 800; color: var(--md-sys-color-on-background);">本周暂无课程表数据</div>
             <div style="font-size: 12px; color: var(--md-sys-color-secondary); padding: 0 16px;">请点击右上方的“导入课表”，完成南财教务系统数据的自动绑定。</div>
@@ -1129,8 +1143,8 @@
         board.appendChild(makeCell(`day-head ${isToday ? "today" : ""}`, `<div>${day.label}</div>`));
       });
 
-      // 占用矩阵 (5天 x 7时间段)
-      const occupancy = Array.from({ length: 5 }, () => Array(7).fill(false));
+      // 占用矩阵 (5天 x 14子行)
+      const occupancy = Array.from({ length: 5 }, () => Array(14).fill(false));
       const activeSessions = schedule.sessions.filter(session => 
         session.weekday >= 1 && session.weekday <= 5 && activeThisWeek(session, viewingWeek)
       );
@@ -1141,7 +1155,7 @@
         const { startRow, endRow } = getGridRows(session);
         
         for (let r = startRow - 2; r < endRow - 2; r++) {
-          if (r >= 0 && r < 7) occupancy[dayIdx][r] = true;
+          if (r >= 0 && r < 14) occupancy[dayIdx][r] = true;
         }
 
         const courseDiv = document.createElement("div");
@@ -1158,26 +1172,48 @@
         board.appendChild(courseDiv);
       });
 
-      // 渲染侧边课时和空卡槽
+      // 渲染侧边课时和空卡槽 (每个时间段占 2 子行)
       timeBlocks.forEach((block, rowIdx) => {
-        const gridRow = rowIdx + 2;
+        const subRowStart = rowIdx * 2 + 2; // 每个时间段起始子行
+        const subRowEnd = subRowStart + 2;   // 跨 2 个子行
         const timeHeadCell = makeCell("time-head", `
           <div class="period">${block.label}</div>
           <div class="range">${block.range.replace("\n", "<br>")}</div>
         `);
         timeHeadCell.style.gridColumn = 1;
-        timeHeadCell.style.gridRow = gridRow;
+        timeHeadCell.style.gridRow = `${subRowStart} / ${subRowEnd}`;
         board.appendChild(timeHeadCell);
 
         for (let dayIdx = 0; dayIdx < 5; dayIdx++) {
-          if (!occupancy[dayIdx][rowIdx]) {
+          // 检查该时间段的两个子行是否都未被占用
+          const sub0 = occupancy[dayIdx][rowIdx * 2];
+          const sub1 = occupancy[dayIdx][rowIdx * 2 + 1];
+          if (!sub0 && !sub1) {
+            // 完全空闲，整格空卡槽
             const emptyDiv = document.createElement("div");
             emptyDiv.className = "week-cell";
             emptyDiv.style.gridColumn = dayIdx + 2;
-            emptyDiv.style.gridRow = gridRow;
+            emptyDiv.style.gridRow = `${subRowStart} / ${subRowEnd}`;
+            emptyDiv.innerHTML = `<div class="slot-empty"></div>`;
+            board.appendChild(emptyDiv);
+          } else if (!sub0 && sub1) {
+            // 上半空闲
+            const emptyDiv = document.createElement("div");
+            emptyDiv.className = "week-cell";
+            emptyDiv.style.gridColumn = dayIdx + 2;
+            emptyDiv.style.gridRow = `${subRowStart} / ${subRowStart + 1}`;
+            emptyDiv.innerHTML = `<div class="slot-empty"></div>`;
+            board.appendChild(emptyDiv);
+          } else if (sub0 && !sub1) {
+            // 下半空闲
+            const emptyDiv = document.createElement("div");
+            emptyDiv.className = "week-cell";
+            emptyDiv.style.gridColumn = dayIdx + 2;
+            emptyDiv.style.gridRow = `${subRowStart + 1} / ${subRowEnd}`;
             emptyDiv.innerHTML = `<div class="slot-empty"></div>`;
             board.appendChild(emptyDiv);
           }
+          // 如果两个子行都被占用，什么都不渲染（课程已经覆盖）
         }
       });
     }
