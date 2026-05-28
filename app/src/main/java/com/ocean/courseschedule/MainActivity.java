@@ -427,6 +427,9 @@ public class MainActivity extends Activity {
                     
                     Toast.makeText(MainActivity.this, "🎉 课表全自动解析导入成功！已更新至本地！", Toast.LENGTH_LONG).show();
                     
+                    // 通知桌面小部件刷新
+                    TodayCourseWidget.refreshAll(MainActivity.this);
+                    
                     // 关闭原生底栏返回主界面
                     nativeBanner.setVisibility(View.GONE);
                     loadSchedule();
@@ -502,6 +505,8 @@ public class MainActivity extends Activity {
                         activity.webView.clearHistory();
                         activity.webView.clearFormData();
                         activity.loadSchedule();
+                        // 通知桌面小部件刷新
+                        TodayCourseWidget.refreshAll(activity);
                         Toast.makeText(activity, "🗑️ 已清空已导入课表并彻底清除教务登录缓存", Toast.LENGTH_LONG).show();
                     } catch (Exception e) {
                         Toast.makeText(activity, "清除失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingTop="4dp"
+    android:paddingBottom="4dp"
+    android:layout_marginBottom="10dp">
+
+    <!-- 左侧彩色竖条 (设定固定高度 40dp 保持视觉统一) -->
+    <ImageView
+        android:id="@+id/course_accent"
+        android:layout_width="4dp"
+        android:layout_height="40dp"
+        android:layout_marginRight="10dp"
+        android:layout_gravity="center_vertical"
+        android:background="#5b7a9d" />
+
+    <!-- 右侧文字列 -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/course_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="课程名称"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#1a1c1e"
+            android:maxLines="1"
+            android:ellipsize="end" />
+
+        <TextView
+            android:id="@+id/course_location"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="教室位置"
+            android:textSize="12sp"
+            android:textColor="#5f6368"
+            android:maxLines="1"
+            android:ellipsize="end" />
+
+        <TextView
+            android:id="@+id/course_time"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="08:20 - 09:45"
+            android:textSize="12sp"
+            android:textColor="#0b57d0"
+            android:layout_marginTop="2dp"
+            android:maxLines="1" />
+
+    </LinearLayout>
+</LinearLayout>
